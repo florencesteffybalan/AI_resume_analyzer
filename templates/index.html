@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Resume Analyzer</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <div class="background-shapes">
+        <div class="shape shape-1"></div>
+        <div class="shape shape-2"></div>
+        <div class="shape shape-3"></div>
+    </div>
+
+    <main class="container">
+        <header class="header">
+            <h1>AI Resume <span>Analyzer</span></h1>
+            <p>Elevate your career with AI-driven insights. Upload your resume to get an instant ATS score and actionable feedback.</p>
+        </header>
+
+        <section id="upload-section" class="upload-section glass-panel">
+            <form id="upload-form" enctype="multipart/form-data">
+                <div class="file-drop-area" id="file-drop-area">
+                    <span class="file-msg">Drag and drop your resume here, or click to browse</span>
+                    <input class="file-input" type="file" name="file" id="file-input" accept=".pdf,.docx" required>
+                </div>
+                <button type="submit" class="analyze-btn" id="analyze-btn">Analyze Resume</button>
+            </form>
+            
+            <div id="loading-overlay" class="loading-overlay hidden">
+                <div class="spinner"></div>
+                <p>Our AI is analyzing your resume...</p>
+            </div>
+            <div id="error-message" class="error-message hidden"></div>
+        </section>
+
+        <section id="dashboard-section" class="dashboard-section hidden">
+            <div class="dashboard-header">
+                <h2>Analysis Complete</h2>
+                <button id="download-btn" class="analyze-btn primary-btn" style="margin:0;">⬇ Download PDF Report</button>
+            </div>
+
+            <!-- Profession Match Profile Banner -->
+            <div id="profession-banner" class="profession-banner glass-panel">
+                <div class="profession-item">
+                    <span class="profession-label">Detected Profession</span>
+                    <span id="prof-profession" class="profession-value">—</span>
+                </div>
+                <div class="profession-divider"></div>
+                <div class="profession-item">
+                    <span class="profession-label">Industry</span>
+                    <span id="prof-industry" class="profession-value">—</span>
+                </div>
+                <div class="profession-divider"></div>
+                <div class="profession-item">
+                    <span class="profession-label">Experience Level</span>
+                    <span id="prof-level" class="profession-value exp-badge">—</span>
+                </div>
+            </div>
+
+            <div class="dashboard-grid">
+                <!-- Score Card -->
+                <div class="card score-card glass-panel">
+                    <h2>Overall ATS Score</h2>
+                    <div class="chart-container">
+                        <canvas id="scoreChart"></canvas>
+                    </div>
+                    <p id="score-text" class="score-text"></p>
+                    <h3 style="margin-top:2rem;">Category Breakdown</h3>
+                    <div id="category-bars" class="progress-container"></div>
+                </div>
+
+                <!-- Skills -->
+                <div class="card skills-card glass-panel">
+                    <h2>Technical Skills</h2>
+                    <div id="tech-skills-list" class="tags-container"></div>
+                    <h2 class="mt-4">Soft Skills</h2>
+                    <div id="soft-skills-list" class="tags-container"></div>
+                </div>
+
+                <!-- Missing Keywords & Skills (with explanations) -->
+                <div class="card feedback-card glass-panel">
+                    <h2>Critical Recommendations</h2>
+                    <h3 class="mt-4">Missing Industry Keywords</h3>
+                    <div id="missing-keywords-list" class="explained-list"></div>
+                    <h3 class="mt-4">Missing Skills</h3>
+                    <div id="missing-skills-list" class="explained-list"></div>
+                </div>
+
+                <!-- Weak Sections & Content (with explanations) -->
+                <div class="card feedback-card glass-panel">
+                    <h2>Improvement Areas</h2>
+                    <h3 class="mt-4">Weak Sections</h3>
+                    <div id="weak-sections-list" class="explained-list"></div>
+                    <h3 class="mt-4">Content Improvements</h3>
+                    <div id="content-improvements-list" class="explained-list"></div>
+                    <h3 class="mt-4">ATS Optimization</h3>
+                    <div id="ats-optimization-list" class="explained-list"></div>
+                </div>
+
+                <!-- Career Growth (full width) -->
+                <div class="card glass-panel" style="grid-column: span 12;">
+                    <h2>🚀 Career Growth Suggestions</h2>
+                    <p class="text-secondary" style="margin-bottom:1rem;">Personalized roadmap based on your profession and experience level.</p>
+                    <div id="career-growth-list" class="growth-grid"></div>
+                </div>
+
+                <!-- AI Solutions (full width) -->
+                <div class="card solutions-card glass-panel" style="grid-column: span 12;">
+                    <h2 class="premium-text">✨ AI Generated Solutions</h2>
+                    <p class="text-secondary" style="margin-bottom:1.5rem;">Auto-generated, optimized content tailored specifically to your industry.</p>
+                    <div class="solution-box">
+                        <h3>Improved Professional Summary</h3>
+                        <p id="ai-summary" class="solution-text"></p>
+                    </div>
+                    <div class="solution-box mt-4">
+                        <h3>Stronger Achievement Statements</h3>
+                        <ul id="ai-achievements" class="summary-list"></ul>
+                    </div>
+                    <div class="solution-box mt-4">
+                        <h3>Skills Presentation Advice</h3>
+                        <p id="ai-skills-advice" class="solution-text"></p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="actions center-actions">
+                <button id="reset-btn" class="mega-btn">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right:8px;"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+                    Analyze Another Resume
+                </button>
+            </div>
+        </section>
+    </main>
+
+    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+</body>
+</html>
